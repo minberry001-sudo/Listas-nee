@@ -157,8 +157,17 @@ body {
   font-family:Arial,sans-serif;
 }
 
-#listApp td.nameCell input {
-  font-size: clamp(10px, 3vw, 16px);
+#listApp td.nameCell input.rowName {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-size: 13px !important;
+  text-align: left;
+  padding: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #listApp td input[type=number] {
