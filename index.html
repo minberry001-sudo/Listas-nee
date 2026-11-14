@@ -157,19 +157,25 @@ body {
   font-family:Arial,sans-serif;
 }
 
-#listApp td.nameCell input.rowName {
+#listApp td.nameCell {
+  text-align: left;
+  vertical-align: middle;
+  padding: 5px;
+}
+
+#listApp .rowName {
+  display: block;
   width: 100%;
   min-width: 0;
-  max-width: 100%;
   box-sizing: border-box;
-  font-size: 13px !important;
+  color: white;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.3;
   text-align: left;
-  padding: 3px 2px;
   white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
   overflow-wrap: anywhere;
-  height: auto;
+  cursor: pointer;
 }
 
 #listApp td input[type=number] {
@@ -417,14 +423,13 @@ body {
                       ${r.done?'checked':''}>
                   </td>
 
-                  <td class="nameCell">
-                    <input class="rowName"
-                      type="text"
-                      aria-label="Nombre"
-                      value="${esc(r.name)}"
-                      data-action="edit-name"
-                      data-index="${i}">
-                  </td>
+              <td class="nameCell">
+  <div class="rowName"
+    data-action="edit-name"
+    data-index="${i}">
+    ${esc(r.name)}
+  </div>
+</td>
 
                   ${l.columns.map((c,j)=>`
                     <td>
@@ -635,7 +640,10 @@ body {
       if(!l.rows[i])return;
 
       if(a==="check")l.rows[i].done=el.checked;
-      if(a==="edit-name")l.rows[i].name=el.value;
+      if(a==="edit-name"){
+  const nuevoNombre = prompt("Nombre de la serie:", l.rows[i].name);
+  if(nuevoNombre !== null) l.rows[i].name = nuevoNombre;
+}
 
       if(a==="edit-value"){
         l.rows[i].values[Number(el.dataset.col)]=el.value;
