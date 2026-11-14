@@ -587,7 +587,36 @@ body {
 
       if(a==="add-row")addRow();
 
-      if(a==="rename-column"){
+if(a==="edit-name"){
+  const l=getList();
+  const i=Number(b.dataset.index);
+  if(!l || !l.rows[i])return;
+
+  const nuevoNombre=prompt("Nombre de la serie:",l.rows[i].name);
+
+  if(nuevoNombre!==null){
+    l.rows[i].name=nuevoNombre;
+    save();
+    listPage();
+  }
+}
+
+if(a==="edit-value"){
+  const l=getList();
+  const i=Number(b.dataset.index);
+  const j=Number(b.dataset.col);
+  if(!l || !l.rows[i])return;
+
+  const nuevoValor=prompt("Introduce el número:",l.rows[i].values[j]??"");
+
+  if(nuevoValor!==null){
+    l.rows[i].values[j]=nuevoValor;
+    save();
+    listPage();
+  }
+}
+
+            if(a==="rename-column"){
         renameColumn(Number(b.dataset.col));
       }
 
@@ -645,24 +674,11 @@ body {
       const i=Number(el.dataset.index);
       if(!l.rows[i])return;
 
-      if(a==="check")l.rows[i].done=el.checked;
-
-if(a==="edit-name"){
-  const nuevoNombre = prompt("Nombre de la serie:", l.rows[i].name);
-  if(nuevoNombre !== null) l.rows[i].name = nuevoNombre;
-}
-
-if(a==="edit-value"){
-  const j = Number(el.dataset.col);
-  const nuevoValor = prompt("Introduce el número:", l.rows[i].values[j] ?? "");
-  if(nuevoValor !== null) {
-    l.rows[i].values[j] = nuevoValor;
-  }
-}
-
-save();
-
-      if(a==="check")listPage();
+      if(a==="check"){
+        l.rows[i].done=el.checked;
+        save();
+        listPage();
+      }
     });
 
     home();
