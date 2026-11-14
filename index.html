@@ -152,29 +152,13 @@ body {
 #listApp td {
   background:#1b1d22;
   border:1px solid var(--line);
-  padding:5px 3px;
-  text-align:center;
-}
-
-#listApp td.nameCell {
-  text-align:left;
-  min-width:0;
-}
-
-#listApp td.nameCell input { text-align:left; }
-#listApp .rowName { min-width:0; }
-
-#listApp td input[type=text],
-#listApp td input[type=number] {
-  background:transparent;
-  color:white;
-  border:0;
-  outline:none;
-  width:100%;
-  min-width:0;
-  font-size:16px;
   padding:4px 2px;
+  text-align:center;
   font-family:Arial,sans-serif;
+}
+
+#listApp td.nameCell input {
+  font-size: clamp(10px, 3vw, 16px);
 }
 
 #listApp td input[type=number] {
