@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111318">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mis listas">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Organiza tus carpetas y listas desde el móvil.">
+<title>Mis listas</title>
+
+<style>
+html {
+  background:#111318;
+  min-height:100%;
+  color-scheme:dark;
+}
+
+body {
+  margin:0;
+  min-height:100%;
+  background:#111318;
+  overscroll-behavior-y:none;
+}
+
+#listApp {
+  --bg:#111318;
+  --panel:#1d2027;
+  --line:#383c45;
+  --txt:#f4f4f5;
+  --muted:#a5a8b0;
+  color:var(--txt);
+  background:var(--bg);
+  font-family:Arial,sans-serif;
+  min-height:100vh;
+  min-height:100dvh;
+  padding:14px;
+  box-sizing:border-box;
+}
+
+#listApp * { box-sizing:border-box; }
+
+#listApp button {
+  cursor:pointer;
+  border:1px solid var(--line);
+  background:#292d36;
+  color:white;
+  padding:8px 11px;
+  border-radius:8px;
+  font-size:13px;
+}
+
+#listApp button.primary {
+  background:#4545a5;
+  border-color:#6262c9;
+}
+
+#listApp button.danger { color:#ff8585; }
+
+#listApp .top {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:15px;
+}
+
+#listApp h2 { font-size:19px; margin:0; }
+#listApp .muted { color:var(--muted); font-size:11px; }
+
+#listApp .folders {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(135px,1fr));
+  gap:10px;
+}
+
+#listApp .folder {
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:13px 10px;
+  cursor:pointer;
+  min-height:90px;
+}
+
+#listApp .folder:hover { border-color:#7777d9; }
+#listApp .folderIcon { font-size:25px; }
+
+#listApp .folderName {
+  font-size:13px;
+  font-weight:bold;
+  margin-top:8px;
+  overflow-wrap:anywhere;
+}
+
+#listApp .listButtons { display:grid; gap:8px; }
+
+#listApp .listButton {
+  text-align:left;
+  width:100%;
+  background:var(--panel);
+  padding:12px;
+}
+
+#listApp .tableWrap {
+  overflow-x:auto;
+  overflow-y:hidden;
+  border:1px solid var(--line);
+  border-radius:8px;
+  margin-top:12px;
+  -webkit-overflow-scrolling:touch;
+}
+
+#listApp table {
+  border-collapse:collapse;
+  table-layout:fixed;
+  font-size:12px;
+}
+
+#listApp th {
+  background:#353943;
+  color:#ddd;
+  padding:7px 4px;
+  border:1px solid var(--line);
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  line-height:1.2;
+  text-align:center;
+  font-size:11px;
+}
+
+#listApp th:first-child,
+#listApp td:first-child {
+  width:34px;
+  min-width:34px;
+  max-width:34px;
+}
+
+#listApp th:nth-child(2),
+#listApp td:nth-child(2) {
+  width:150px;
+  min-width:150px;
+  max-width:150px;
+}
+
+#listApp th[data-action="rename-column"] { cursor:pointer; }
+#listApp th[data-action="rename-column"]:active { background:#50566a; }
+
+#listApp td {
+  background:#1b1d22;
+  border:1px solid var(--line);
+  padding:5px 3px;
+  text-align:center;
+}
+
+#listApp td.nameCell {
+  text-align:left;
+  min-width:0;
+}
+
+#listApp td.nameCell input { text-align:left; }
+#listApp .rowName { min-width:0; }
+
+#listApp td input[type=text],
+#listApp td input[type=number] {
+  background:transparent;
+  color:white;
+  border:0;
+  outline:none;
+  width:100%;
+  min-width:0;
+  font-size:16px;
+  padding:4px 2px;
+  font-family:Arial,sans-serif;
+}
+
+#listApp td input[type=number] {
+  text-align:center;
+  display:block;
+  margin:0 auto;
+}
+
+#listApp tr.done td input[type=text],
+#listApp tr.done td input[type=number] {
+  text-decoration:line-through;
+  color:#999;
+}
+
+#listApp input[type=checkbox] {
+  width:19px;
+  height:19px;
+  cursor:pointer;
+}
+
+#listApp .back { margin-bottom:14px; }
+
+#listApp .empty {
+  padding:25px 10px;
+  text-align:center;
+  color:var(--muted);
+  font-size:13px;
+}
+
+#listApp .actions {
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+#listApp .actions button { flex:1 1 auto; }
+
+@media(max-width:600px) {
+  #listApp {
+    width:100%;
+    min-height:100vh;
+    min-height:100dvh;
+    padding:
+      calc(env(safe-area-inset-top) + 22px)
+      10px
+      calc(15px + env(safe-area-inset-bottom));
+    overflow-x:hidden;
+  }
+
+  #listApp .top { align-items:center; gap:6px; }
+  #listApp .top > div { min-width:0; }
+  #listApp h2 { font-size:17px; overflow-wrap:anywhere; }
+
+  #listApp button {
+    padding:8px 9px;
+    font-size:12px;
+  }
+
+  #listApp .tableWrap {
+    width:100%;
+    overflow-x:auto;
+  }
+
+  #listApp td { padding:4px 2px; }
+  #listApp th { padding:6px 3px; font-size:10px; }
+
+  #listApp td input[type=text],
+  #listApp td input[type=number] {
+    width:100%;
+    min-width:0;
+    padding:4px 1px;
+    font-size:16px;
+  }
+
+  #listApp td input[type=number] { text-align:center; }
+  #listApp .folder { padding:11px 9px; }
+  #listApp .actions { gap:6px; }
+  #listApp .actions button { flex:1 1 auto; }
+}
+
+@media(max-width:500px) {
+  #listApp .folders {
+    grid-template-columns:repeat(auto-fill,minmax(125px,1fr));
+  }
+}
+</style>
+</head>
+
+<body>
+<div id="listApp">
+  <div id="appContent"></div>
+
+  <script>
+  (function(){
+    const root=document.getElementById("listApp");
+    const content=root.querySelector("#appContent");
+    const KEY="miGestorListasV1";
+
+    let data={};
+    try {
+      data=JSON.parse(localStorage.getItem(KEY))||{folders:[]};
+    } catch(e) {
+      data={folders:[]};
+    }
+
+    let currentFolder=null;
+    let currentList=null;
+
+    function save(){
+      localStorage.setItem(KEY,JSON.stringify(data));
+    }
+
+    function esc(s){
+      return String(s??"").replace(/[&<>"']/g,c=>({
+        "&":"&amp;","<":"&lt;",">":"&gt;",
+        '"':"&quot;","'":"&#39;"
+      })[c]);
+    }
+
+    function date(){
+      return new Date().toLocaleDateString();
+    }
+
+    function getFolder(){
+      return data.folders.find(f=>f.id===currentFolder);
+    }
+
+    function getList(){
+      const f=getFolder();
+      return f&&f.lists.find(l=>l.id===currentList);
+    }
+
+    function id(){
+      return Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+    }
+
+    function home(){
+      currentFolder=null;
+      currentList=null;
+
+      content.innerHTML=`
+        <div class="top">
+          <div>
+            <h2>Mis carpetas</h2>
+            <div class="muted">Tu espacio de organización</div>
+          </div>
+          <button class="primary" data-action="new-folder">+ Carpeta</button>
+        </div>
+
+        <div class="folders">
+          ${data.folders.map(f=>`
+            <div class="folder" data-action="open-folder" data-id="${esc(f.id)}">
+              <div class="folderIcon">📁</div>
+              <div class="folderName">${esc(f.name)}</div>
+              <div class="muted">${f.lists.length} listas</div>
+              <div class="muted">${esc(f.created)}</div>
+            </div>
+          `).join("")}
+        </div>
+
+        ${data.folders.length?"":
+          '<div class="empty">Todavía no tienes carpetas.<br>Crea tu primera carpeta.</div>'}
+      `;
+    }
+
+    function folderPage(){
+      const f=getFolder();
+      if(!f){home();return;}
+
+      content.innerHTML=`
+        <button class="back" data-action="home">← Volver</button>
+
+        <div class="top">
+          <div>
+            <h2>📁 ${esc(f.name)}</h2>
+            <div class="muted">Creada el ${esc(f.created)}</div>
+          </div>
+          <button class="primary" data-action="new-list">+ Lista</button>
+        </div>
+
+        <div class="listButtons">
+          ${f.lists.map(l=>`
+            <button class="listButton" data-action="open-list" data-id="${esc(l.id)}">
+              📋 ${esc(l.name)}
+              <div class="muted">${l.rows.length} registros · ${esc(l.created)}</div>
+            </button>
+          `).join("")}
+        </div>
+
+        ${f.lists.length?"":
+          '<div class="empty">Esta carpeta todavía no tiene listas.</div>'}
+
+        <div class="actions">
+          <button data-action="rename-folder">Renombrar carpeta</button>
+          <button class="danger" data-action="delete-folder">Eliminar carpeta</button>
+        </div>
+      `;
+    }
+
+    function listPage(){
+      const l=getList();
+      if(!l){folderPage();return;}
+
+      const tableWidth=34+150+(l.columns.length*76);
+
+      content.innerHTML=`
+        <button class="back" data-action="folder">← Volver a la carpeta</button>
+
+        <div class="top">
+          <div>
+            <h2>${esc(l.name)}</h2>
+            <div class="muted">Creada el ${esc(l.created)}</div>
+          </div>
+          <button class="primary" data-action="add-row">+ Añadir</button>
+        </div>
+
+        <div class="muted">
+          Toca el título de una columna para cambiar su nombre.
+        </div>
+
+        <div class="tableWrap">
+          <table style="width:${tableWidth}px;min-width:${tableWidth}px">
+            <thead>
+              <tr>
+                <th>✓</th>
+                <th>Nombre</th>
+                ${l.columns.map((c,j)=>`
+                  <th data-action="rename-column" data-col="${j}"
+                      title="Tocar para cambiar el nombre">
+                    ${esc(c)} ✎
+                  </th>
+                `).join("")}
+              </tr>
+            </thead>
+
+            <tbody>
+              ${l.rows.map((r,i)=>`
+                <tr class="${r.done?'done':''}">
+                  <td>
+                    <input type="checkbox"
+                      aria-label="Marcar elemento como completado"
+                      data-action="check"
+                      data-index="${i}"
+                      ${r.done?'checked':''}>
+                  </td>
+
+                  <td class="nameCell">
+                    <input class="rowName"
+                      type="text"
+                      aria-label="Nombre"
+                      value="${esc(r.name)}"
+                      data-action="edit-name"
+                      data-index="${i}">
+                  </td>
+
+                  ${l.columns.map((c,j)=>`
+                    <td>
+                      <input type="number"
+                        step="any"
+                        aria-label="${esc(c)}"
+                        value="${esc(r.values[j]??'')}"
+                        data-action="edit-value"
+                        data-index="${i}"
+                        data-col="${j}">
+                    </td>
+                  `).join("")}
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="muted" style="margin-top:9px">
+          ${l.rows.length} registros · ${l.columns.length} columnas numéricas
+        </div>
+
+        <div class="actions">
+          <button data-action="add-row">+ Añadir fila</button>
+          <button data-action="edit-columns">✎ Editar columnas</button>
+          <button data-action="rename-list">Renombrar lista</button>
+          <button class="danger" data-action="delete-list">Eliminar lista</button>
+        </div>
+      `;
+    }
+
+    function renameColumn(index){
+      const l=getList();
+      if(!l||index<0||index>=l.columns.length)return;
+
+      const oldName=l.columns[index];
+      const n=prompt("Nuevo nombre para esta columna:",oldName);
+
+      if(n===null||!n.trim())return;
+
+      l.columns[index]=n.trim();
+      save();
+      listPage();
+    }
+
+    function editColumns(){
+      const l=getList();
+      if(!l)return;
+
+      for(let i=0;i<l.columns.length;i++){
+        const n=prompt(
+          "Nuevo nombre para la columna "+(i+1)+":",
+          l.columns[i]
+        );
+
+        if(n===null)break;
+        if(n.trim())l.columns[i]=n.trim();
+      }
+
+      save();
+      listPage();
+    }
+
+    function newFolder(){
+      const name=prompt("Nombre de la carpeta:");
+      if(!name||!name.trim())return;
+
+      data.folders.push({
+        id:id(),
+        name:name.trim(),
+        created:date(),
+        lists:[]
+      });
+
+      save();
+      home();
+    }
+
+    function newList(){
+      const name=prompt("Nombre de la lista:");
+      if(!name||!name.trim())return;
+
+      const amount=Number(prompt(
+        "¿Cuántas columnas numéricas quieres?","2"
+      ));
+
+      if(!Number.isInteger(amount)||amount<1||amount>20){
+        alert("Elige entre 1 y 20 columnas.");
+        return;
+      }
+
+      const columns=[];
+      for(let i=0;i<amount;i++){
+        const n=prompt(
+          "Nombre de la columna "+(i+1)+":",
+          "Columna "+(i+1)
+        );
+
+        columns.push(
+          n&&n.trim()?n.trim():"Columna "+(i+1)
+        );
+      }
+
+      getFolder().lists.push({
+        id:id(),
+        name:name.trim(),
+        created:date(),
+        columns:columns,
+        rows:[]
+      });
+
+      save();
+      folderPage();
+    }
+
+    function addRow(){
+      const l=getList();
+
+      l.rows.push({
+        name:"Nuevo elemento",
+        values:l.columns.map(()=>""),
+        done:false
+      });
+
+      save();
+      listPage();
+    }
+
+    root.addEventListener("click",function(e){
+      const b=e.target.closest("[data-action]");
+      if(!b)return;
+
+      const a=b.dataset.action;
+
+      if(a==="new-folder")newFolder();
+      if(a==="home")home();
+      if(a==="folder")folderPage();
+      if(a==="new-list")newList();
+
+      if(a==="open-folder"){
+        currentFolder=b.dataset.id;
+        folderPage();
+      }
+
+      if(a==="open-list"){
+        currentList=b.dataset.id;
+        listPage();
+      }
+
+      if(a==="add-row")addRow();
+
+      if(a==="rename-column"){
+        renameColumn(Number(b.dataset.col));
+      }
+
+      if(a==="edit-columns")editColumns();
+
+      if(a==="rename-folder"){
+        const f=getFolder();
+        const n=prompt("Nuevo nombre:",f.name);
+
+        if(n&&n.trim()){
+          f.name=n.trim();
+          save();
+          folderPage();
+        }
+      }
+
+      if(a==="delete-folder"){
+        if(confirm("¿Eliminar esta carpeta y todas sus listas?")){
+          data.folders=data.folders.filter(
+            f=>f.id!==currentFolder
+          );
+          save();
+          home();
+        }
+      }
+
+      if(a==="rename-list"){
+        const l=getList();
+        const n=prompt("Nuevo nombre:",l.name);
+
+        if(n&&n.trim()){
+          l.name=n.trim();
+          save();
+          listPage();
+        }
+      }
+
+      if(a==="delete-list"){
+        if(confirm("¿Eliminar esta lista?")){
+          const f=getFolder();
+          f.lists=f.lists.filter(l=>l.id!==currentList);
+          save();
+          folderPage();
+        }
+      }
+    });
+
+    root.addEventListener("change",function(e){
+      const el=e.target;
+      const a=el.dataset.action;
+      const l=getList();
+
+      if(!l)return;
+
+      const i=Number(el.dataset.index);
+      if(!l.rows[i])return;
+
+      if(a==="check")l.rows[i].done=el.checked;
+      if(a==="edit-name")l.rows[i].name=el.value;
+
+      if(a==="edit-value"){
+        l.rows[i].values[Number(el.dataset.col)]=el.value;
+      }
+
+      save();
+
+      if(a==="check")listPage();
+    });
+
+    home();
+  })();
+  </script>
+</div>
+</body>
+</html>
