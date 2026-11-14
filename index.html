@@ -141,9 +141,9 @@ body {
 
 #listApp th:nth-child(2),
 #listApp td:nth-child(2) {
-  width:150px;
-  min-width:150px;
-  max-width:150px;
+  width:180px;
+  min-width:180px;
+  max-width:180px;
 }
 
 #listApp th[data-action="rename-column"] { cursor:pointer; }
@@ -387,7 +387,7 @@ body {
       const l=getList();
       if(!l){folderPage();return;}
 
-      const tableWidth=34+150+(l.columns.length*76);
+      const tableWidth=34+180+(l.columns.length*60);
 
       content.innerHTML=`
         <button class="back" data-action="folder">← Volver a la carpeta</button>
