@@ -178,16 +178,23 @@ body {
   cursor: pointer;
 }
 
-#listApp td input[type=number] {
-  text-align:center;
-  display:block;
-  margin:0 auto;
+#listApp .numberCell {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  color: white;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  text-align: center;
+  padding: 4px 2px;
+  cursor: pointer;
 }
 
-#listApp tr.done td input[type=text],
-#listApp tr.done td input[type=number] {
-  text-decoration:line-through;
-  color:#999;
+#listApp tr.done .rowName,
+#listApp tr.done .numberCell {
+  text-decoration: line-through;
+  color: #999;
 }
 
 #listApp input[type=checkbox] {
@@ -432,18 +439,15 @@ body {
 </td>
 
                   ${l.columns.map((c,j)=>`
-                    <td>
-                      <input type="number"
-                        step="any"
-                        aria-label="${esc(c)}"
-                        value="${esc(r.values[j]??'')}"
-                        data-action="edit-value"
-                        data-index="${i}"
-                        data-col="${j}">
-                    </td>
-                  `).join("")}
-                </tr>
-              `).join("")}
+  <td>
+    <div class="numberCell"
+      data-action="edit-value"
+      data-index="${i}"
+      data-col="${j}">
+      ${esc(r.values[j]??'')}
+    </div>
+  </td>
+`).join("")}
             </tbody>
           </table>
         </div>
@@ -640,16 +644,21 @@ body {
       if(!l.rows[i])return;
 
       if(a==="check")l.rows[i].done=el.checked;
-      if(a==="edit-name"){
+
+if(a==="edit-name"){
   const nuevoNombre = prompt("Nombre de la serie:", l.rows[i].name);
   if(nuevoNombre !== null) l.rows[i].name = nuevoNombre;
 }
 
-      if(a==="edit-value"){
-        l.rows[i].values[Number(el.dataset.col)]=el.value;
-      }
+if(a==="edit-value"){
+  const j = Number(el.dataset.col);
+  const nuevoValor = prompt("Introduce el número:", l.rows[i].values[j] ?? "");
+  if(nuevoValor !== null) {
+    l.rows[i].values[j] = nuevoValor;
+  }
+}
 
-      save();
+save();
 
       if(a==="check")listPage();
     });
