@@ -85,17 +85,20 @@ button,input { font:inherit; }
 #listApp td.nameCell { text-align:left; vertical-align:middle; padding:7px 9px; }
 #listApp .rowName,#listApp .numberCell {
   display:block; width:100%; min-width:0; color:var(--text); border-radius:7px;
-  cursor:text; overflow-wrap:anywhere; white-space:normal; padding:6px 5px; line-height:1.35;
+  cursor:text; overflow-wrap:anywhere; white-space:pre-wrap; padding:6px 5px; line-height:1.35;
+  outline:none; -webkit-user-modify:read-write-plaintext-only;
+}
+#listApp th[contenteditable="true"] { outline:none; cursor:text; }
+#listApp [contenteditable="true"]:focus { background:rgba(133,133,255,.07); }
+#listApp tr.long-pressing,
+#listApp tr.long-pressing * {
+  -webkit-user-select:none !important; user-select:none !important;
+  -webkit-touch-callout:none !important;
 }
 #listApp .rowName { text-align:left; font-size:12px; font-weight:600; }
 #listApp .numberCell { text-align:center; font-size:13px; font-variant-numeric:tabular-nums; }
 #listApp .rowName:hover,#listApp .numberCell:hover { background:rgba(135,135,255,.09); }
 #listApp tr.done .rowName,#listApp tr.done .numberCell { text-decoration:line-through; color:#858995; }
-#listApp .cellEditor {
-  width:100%; min-width:0; border:1px solid #8585ff; outline:none; border-radius:7px;
-  background:#11131b; color:#fff; padding:6px 5px; font-size:13px; box-shadow:0 0 0 3px rgba(133,133,255,.13);
-}
-#listApp .cellEditor.numeric { text-align:center; }
 #listApp input[type=checkbox] { width:18px; height:18px; accent-color:#8585ff; cursor:pointer; }
 #listApp .empty { padding:35px 14px; text-align:center; color:var(--muted); font-size:13px; border:1px dashed #383d4b; border-radius:15px; margin-top:15px; }
 #listApp .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:17px; }
@@ -195,62 +198,28 @@ button,input { font:inherit; }
         <div><div class="eyebrow">Tu lista</div><h2>${esc(l.name)}</h2><div class="muted">Creada el ${esc(l.created)}</div></div>
         <button class="primary" data-action="add-row">＋ Añadir</button>
       </div>
-      <div class="muted">Toca cualquier texto de la tabla para editarlo directamente.</div>
+      <div class="muted">Escribe directamente en cualquier celda; los cambios se guardan automáticamente.</div>
       <div class="tableWrap">
         <table style="width:100%;min-width:${tableWidth}px">
           <thead><tr><th>✓</th><th>Nombre</th>
-            ${l.columns.map((c,j)=>`<th data-action="rename-column" data-col="${j}" title="Tocar para editar">${esc(c)} ✎</th>`).join("")}
+            ${l.columns.map((c,j)=>`<th contenteditable="true" spellcheck="false" data-edit="column" data-col="${j}" title="Editar directamente">${esc(c)}</th>`).join("")}
           </tr></thead>
           <tbody>
             ${l.rows.map((r,i)=>`
               <tr class="${r.done?"done":""}" data-row="${i}">
                 <td><input type="checkbox" aria-label="Marcar como completado" data-action="check" data-index="${i}" ${r.done?"checked":""}></td>
-                <td class="nameCell"><div class="rowName" data-action="edit-name" data-index="${i}">${esc(r.name)}</div></td>
-                ${l.columns.map((c,j)=>`<td><div class="numberCell" data-action="edit-value" data-index="${i}" data-col="${j}">${esc(r.values[j]??"")}</div></td>`).join("")}
+                <td class="nameCell"><div class="rowName" contenteditable="true" spellcheck="false" data-edit="name" data-index="${i}">${esc(r.name)}</div></td>
+                ${l.columns.map((c,j)=>`<td><div class="numberCell" contenteditable="true" spellcheck="false" data-edit="value" data-index="${i}" data-col="${j}">${esc(r.values[j]??"")}</div></td>`).join("")}
               </tr>`).join("")}
           </tbody>
         </table>
       </div>
       <div class="muted" style="margin-top:10px">${l.rows.length} registros · ${l.columns.length} columnas</div>
-      <div class="hint">Consejo: mantén pulsada una fila para eliminarla.</div>
+      <div class="hint">Mantén pulsada una fila para eliminarla. Pulsa Enter para terminar de editar una celda.</div>
       <div class="actions">
-        <button data-action="add-row">＋ Añadir fila</button><button data-action="edit-columns">✎ Editar columnas</button>
+        <button data-action="add-row">＋ Añadir fila</button>
         <button data-action="rename-list">Renombrar lista</button><button class="danger" data-action="delete-list">Eliminar lista</button>
       </div>`;
-  }
-
-  function startEdit(element, kind){
-    if(element.querySelector("input")) return;
-    const l=getList(); if(!l) return;
-    const index=Number(element.dataset.index), col=Number(element.dataset.col);
-    let current="";
-    if(kind==="name") current=l.rows[index]?.name??"";
-    if(kind==="value") current=l.rows[index]?.values[col]??"";
-    if(kind==="column") current=l.columns[col]??"";
-    if(current===undefined) return;
-    const input=document.createElement("input");
-    input.className="cellEditor"+(kind==="value"?" numeric":"");
-    input.type="text"; input.value=current;
-    input.setAttribute("aria-label","Editar "+kind);
-    element.replaceChildren(input);
-    input.focus(); input.select();
-    let finished=false;
-    function finish(commit){
-      if(finished) return; finished=true;
-      if(commit){
-        const value=input.value.trim();
-        if(kind==="name" && l.rows[index]) l.rows[index].name=value;
-        if(kind==="value" && l.rows[index]) l.rows[index].values[col]=value;
-        if(kind==="column" && col>=0 && col<l.columns.length && value) l.columns[col]=value;
-        save();
-      }
-      listPage();
-    }
-    input.addEventListener("blur",()=>finish(true));
-    input.addEventListener("keydown",e=>{
-      if(e.key==="Enter"){ e.preventDefault(); input.blur(); }
-      if(e.key==="Escape"){ e.preventDefault(); finish(false); }
-    });
   }
 
   function newFolder(){
@@ -300,11 +269,7 @@ button,input { font:inherit; }
 
   root.addEventListener("click",function(e){
     if(longPressTriggered){ longPressTriggered=false; e.preventDefault(); return; }
-    const edit=e.target.closest('[data-action="edit-name"],[data-action="edit-value"],[data-action="rename-column"]');
-    if(edit){
-      const kind=edit.dataset.action==="edit-name"?"name":edit.dataset.action==="edit-value"?"value":"column";
-      startEdit(edit,kind); return;
-    }
+    if(e.target.closest('[contenteditable="true"]')) return;
     const b=e.target.closest("[data-action]"); if(!b)return;
     const a=b.dataset.action;
     if(a==="new-folder")newFolder();
@@ -314,14 +279,6 @@ button,input { font:inherit; }
     if(a==="open-folder"){currentFolder=b.dataset.id;folderPage();}
     if(a==="open-list"){currentList=b.dataset.id;listPage();}
     if(a==="add-row")addRow();
-    if(a==="edit-columns"){
-      const l=getList(); if(!l)return;
-      for(let i=0;i<l.columns.length;i++){
-        const n=prompt("Nuevo nombre para la columna "+(i+1)+":",l.columns[i]);
-        if(n===null)break; if(n.trim())l.columns[i]=n.trim();
-      }
-      save();listPage();
-    }
     if(a==="rename-folder"){
       const f=getFolder(),n=prompt("Nuevo nombre:",f.name);
       if(n&&n.trim()){f.name=n.trim();save();folderPage();}
@@ -335,6 +292,47 @@ button,input { font:inherit; }
     }
     if(a==="delete-list"&&confirm("¿Eliminar esta lista?")){
       const f=getFolder();f.lists=f.lists.filter(l=>l.id!==currentList);save();folderPage();
+    }
+  });
+
+  // Edición directa dentro de las celdas, sin inputs ni ventanas emergentes.
+  root.addEventListener("input",function(e){
+    const el=e.target.closest('[contenteditable="true"][data-edit]');
+    if(!el) return;
+    const l=getList(); if(!l) return;
+    const value=el.innerText.replace(/[\n\r]/g,"");
+    const kind=el.dataset.edit, index=Number(el.dataset.index), col=Number(el.dataset.col);
+    if(kind==="name" && l.rows[index]) l.rows[index].name=value;
+    if(kind==="value" && l.rows[index]) l.rows[index].values[col]=value;
+    if(kind==="column" && col>=0 && col<l.columns.length) l.columns[col]=value;
+    save();
+  });
+
+  root.addEventListener("blur",function(e){
+    const el=e.target.closest?.('[contenteditable="true"][data-edit]');
+    if(!el) return;
+    const l=getList(); if(!l) return;
+    const value=el.innerText.replace(/[\n\r]/g,"").trim();
+    const kind=el.dataset.edit, index=Number(el.dataset.index), col=Number(el.dataset.col);
+    if(kind==="name" && l.rows[index]) l.rows[index].name=value;
+    if(kind==="value" && l.rows[index]) l.rows[index].values[col]=value;
+    if(kind==="column" && col>=0 && col<l.columns.length) l.columns[col]=value;
+    el.textContent=value;
+    save();
+  },true);
+
+  root.addEventListener("keydown",function(e){
+    const el=e.target.closest?.('[contenteditable="true"][data-edit]');
+    if(!el) return;
+    if(e.key==="Enter"){ e.preventDefault(); el.blur(); }
+    if(e.key==="Escape"){
+      e.preventDefault();
+      const l=getList(); if(!l) return;
+      const kind=el.dataset.edit, index=Number(el.dataset.index), col=Number(el.dataset.col);
+      if(kind==="name" && l.rows[index]) el.textContent=l.rows[index].name;
+      if(kind==="value" && l.rows[index]) el.textContent=l.rows[index].values[col]??"";
+      if(kind==="column" && l.columns[col]!==undefined) el.textContent=l.columns[col];
+      el.blur();
     }
   });
 
@@ -352,6 +350,7 @@ button,input { font:inherit; }
     if(!tr || e.target.closest("input,button"))return;
     longPressTriggered=false;
     activeRow=Number(tr.dataset.row);
+    tr.classList.add("long-pressing");
     clearTimeout(longPressTimer);
     longPressTimer=setTimeout(()=>{
       longPressTriggered=true;
@@ -360,7 +359,10 @@ button,input { font:inherit; }
     },600);
   });
   ["pointerup","pointercancel","pointerleave"].forEach(type=>{
-    root.addEventListener(type,()=>clearTimeout(longPressTimer));
+    root.addEventListener(type,()=>{
+      clearTimeout(longPressTimer);
+      root.querySelectorAll("tr.long-pressing").forEach(row=>row.classList.remove("long-pressing"));
+    });
   });
   root.addEventListener("contextmenu",e=>{
     if(e.target.closest("tbody tr[data-row]"))e.preventDefault();
