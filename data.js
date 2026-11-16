@@ -2,7 +2,7 @@
   'use strict';
 
   const SCHEMA_VERSION = 3;
-  const APP_VERSION = '3.2.0';
+  const APP_VERSION = '3.3.0';
 
   const KEYS = {
     data: 'misListasData',

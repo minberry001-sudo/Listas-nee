@@ -6,10 +6,10 @@ App personal para organizar carpetas, listas y registros. Funciona en el navegad
 
 ## Qué incluye
 
-- Carpetas con listas dentro y edición directa de cada fila.
-- Vista de lista tipo tabla responsiva al 100 % del ancho del dispositivo, sin scroll horizontal y con encabezados fijos.
-- Al marcar una fila como hecha, se tacha de forma continua a partir del selector.
-- Columnas de texto o número: encabezados y números centrados, textos y nombres a la izquierda con truncado inteligente.
+- Carpetas con tarjetas de lista rediseñadas: visualización moderna con badges de estado y barra de progreso integrada.
+- Vista de lista tipo tabla compacta optimizada para series: más espacio horizontal para el nombre, reducción dinámica de letra y salto de línea para títulos largos.
+- Filas completadas estilizadas: texto y números en cursiva (*italic*) y tachado exacto desde la primera letra del nombre hasta la última columna.
+- Columnas de texto o número: encabezados y números centrados, textos y nombres a la izquierda adaptables a la celda.
 - Modo «Editar» para insertar, duplicar, mover o eliminar filas sin ocupar columnas extra ni botones innecesarios.
 - Al crear una lista nueva, se incluye su primera fila enfocada lista para escribir.
 - Orden manual, por nombre, por última edición o por fecha de creación. El orden elegido se recuerda por vista.
