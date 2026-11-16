@@ -440,18 +440,24 @@
   function listCardHTML(folder, list) {
     const stats = D.countList(list);
     const percent = stats.total ? Math.round((stats.done / stats.total) * 100) : 0;
+    const isComplete = stats.total > 0 && stats.done === stats.total;
+    const badgeText = stats.total ? (stats.done + '/' + stats.total + (isComplete ? ' completada' : ' (' + percent + '%)')) : '0 registros';
     return '<article class="list-card">' +
       '<button type="button" class="card-main" data-action="open-list" data-id="' + escAttr(list.id) + '">' +
+      '<div class="list-card-top">' +
       '<span class="list-icon">' + icon('list') + '</span>' +
-      '<span class="list-info">' +
+      '<div class="list-info">' +
       '<span class="list-name">' + esc(list.name) + '</span>' +
-      '<span class="list-meta">' + esc(plural(stats.total, 'registro', 'registros')) + ' · ' + esc(plural(list.columns.length, 'columna', 'columnas')) + '</span>' +
-      '<span class="list-dates" title="' + escAttr('Creada ' + D.exactDate(list.createdAt)) + '">Creada ' + esc(D.dateLabel(list.createdAt)) + ' · Editada ' + esc(D.timeAgo(list.updatedAt)) + '</span>' +
-      '</span>' +
-      '<span class="list-progress">' +
+      '<div class="list-meta">' +
+      '<span class="list-badge' + (isComplete ? ' is-complete' : '') + '">' + esc(badgeText) + '</span>' +
+      '<span class="list-dot">·</span>' +
+      '<span class="list-date" title="' + escAttr('Creada ' + D.exactDate(list.createdAt)) + '">Editada ' + esc(D.timeAgo(list.updatedAt)) + '</span>' +
+      '</div>' +
+      '</div>' +
+      '</div>' +
+      '<div class="list-card-progress">' +
       '<span class="progress-track"><span class="progress-fill" style="width:' + percent + '%"></span></span>' +
-      '<small>' + stats.done + '/' + stats.total + '</small>' +
-      '</span>' +
+      '</div>' +
       '</button>' +
       '<button type="button" class="card-menu" data-action="list-menu" data-id="' + escAttr(list.id) + '" aria-label="Opciones de ' + escAttr(list.name) + '">' + icon('more') + '</button>' +
       '</article>';
@@ -511,12 +517,40 @@
       '</button>';
   }
 
+  function adjustNameField(field) {
+    if (!field || !field.classList || !field.classList.contains('row-name')) return;
+    const len = (field.value || '').length;
+    if (len <= 16) {
+      field.style.fontSize = '14.5px';
+      field.style.lineHeight = '1.24';
+    } else if (len <= 26) {
+      field.style.fontSize = '13px';
+      field.style.lineHeight = '1.2';
+    } else {
+      field.style.fontSize = '11.5px';
+      field.style.lineHeight = '1.18';
+    }
+    field.style.height = 'auto';
+    const scrollH = field.scrollHeight;
+    if (scrollH > 0) {
+      field.style.height = Math.max(28, scrollH) + 'px';
+    }
+  }
+
   function renderListBody(list) {
     const body = document.getElementById('listBody');
     if (!body) return;
 
-    let rowTemplate = 'minmax(0, 2.6fr)';
-    if (list.columns.length) rowTemplate += ' repeat(' + list.columns.length + ', minmax(0, 1fr))';
+    let rowTemplate;
+    if (!list.columns.length) {
+      rowTemplate = '1fr';
+    } else {
+      const colsDef = list.columns.map(function (col) {
+        return col.type === 'number' ? 'minmax(40px, 0.7fr)' : 'minmax(50px, 1fr)';
+      });
+      const nameFr = list.columns.length === 1 ? '4fr' : (list.columns.length === 2 ? '3.6fr' : '2.8fr');
+      rowTemplate = 'minmax(0, ' + nameFr + ') ' + colsDef.join(' ');
+    }
     body.style.setProperty('--row-cols', rowTemplate);
     body.classList.toggle('is-edit-mode', ui.editRows);
 
@@ -533,6 +567,8 @@
       '</div>' +
       (hasRows ? '<div class="empty-state filter-empty" id="filterEmpty" hidden></div>' : '') +
       '<button type="button" class="add-row-inline" data-action="add-row">' + icon('plus') + 'Añadir fila</button>';
+
+    body.querySelectorAll('.row-name').forEach(adjustNameField);
 
     if (emptyFiltered) updateFilterEmpty(list);
     updateEditModeUI();
@@ -561,7 +597,7 @@
     return '<div class="row-card' + (row.done ? ' is-done' : '') + '" data-row-id="' + escAttr(row.id) + '" role="row"' + (ui.editRows ? ' tabindex="0" aria-label="' + escAttr(rowLabel) + '"' : '') + '>' +
       '<div class="cell cell-name" role="cell">' +
       '<input class="row-check" type="checkbox"' + (row.done ? ' checked' : '') + ' data-check-row="' + escAttr(row.id) + '" aria-label="' + (row.done ? 'Marcar como pendiente' : 'Marcar como completada') + '">' +
-      '<input class="row-name" type="text" value="' + escAttr(row.name) + '" placeholder="Sin nombre" data-field="name"' + editAttrs + ' enterkeyhint="next" autocomplete="off" spellcheck="false" aria-label="Nombre de la fila">' +
+      '<textarea class="row-name" rows="1" placeholder="Sin nombre" data-field="name"' + editAttrs + ' enterkeyhint="next" autocomplete="off" spellcheck="false" aria-label="Nombre de la fila">' + esc(row.name) + '</textarea>' +
       '</div>' +
       values +
       '</div>';
@@ -752,6 +788,11 @@
     }
 
     rowsContainer.insertAdjacentHTML('beforeend', rowHTML(row, ctx.list));
+    const newRowEl = rowsContainer.lastElementChild;
+    if (newRowEl) {
+      const nameField = newRowEl.querySelector('.row-name');
+      if (nameField) adjustNameField(nameField);
+    }
     updateListStats(ctx.list);
     focusRow(row.id, options && options.focusField ? options.focusField : 'name');
   }
@@ -2027,7 +2068,10 @@
       return;
     }
     const field = event.target.closest('[data-field]');
-    if (field) updateFieldFromInput(field);
+    if (field) {
+      if (field.classList.contains('row-name')) adjustNameField(field);
+      updateFieldFromInput(field);
+    }
   }
 
   function handleAppChange(event) {
