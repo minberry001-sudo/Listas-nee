@@ -8,7 +8,7 @@ App personal para organizar carpetas, listas y registros. Funciona en el navegad
 
 - Carpetas con tarjetas de lista rediseñadas: visualización moderna con badges de estado y barra de progreso integrada.
 - Vista de lista tipo tabla compacta optimizada para series: más espacio horizontal para el nombre, reducción dinámica de letra y salto de línea para títulos largos.
-- Filas completadas estilizadas: texto y números en cursiva (*italic*) y tachado sobre el nombre y los valores, sin trazos en las celdas vacías.
+- Filas completadas estilizadas: texto y números en cursiva (*italic*) y una línea de tachado continua que cruza toda la fila, sin guiones en las celdas vacías.
 - Columnas de texto o número: encabezados y números centrados, textos y nombres a la izquierda adaptables a la celda.
 - Modo «Editar» para insertar, duplicar, mover o eliminar filas sin ocupar columnas extra ni botones innecesarios.
 - Al crear una lista nueva, se incluye su primera fila enfocada lista para escribir.
