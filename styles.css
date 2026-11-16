@@ -1029,10 +1029,10 @@ h1 {
   background: transparent;
   color: var(--text);
   font-family: inherit;
-  font-size: 14.5px;
+  font-size: 12.5px;
   font-weight: 620;
   line-height: 1.25;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.008em;
   resize: none;
   overflow-y: hidden;
   white-space: pre-wrap;
@@ -1072,7 +1072,7 @@ h1 {
   outline: none;
   background: transparent;
   color: var(--text);
-  font-size: 14.5px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1103,21 +1103,13 @@ h1 {
   color: var(--muted-2);
   font-style: italic;
   text-decoration: line-through;
-  text-decoration-thickness: 1.5px;
+  text-decoration-thickness: 1px;
   text-decoration-color: var(--muted-2);
 }
 
-.row-card.is-done::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  left: 38px;
-  z-index: 1;
-  height: 1px;
-  background: var(--muted-2);
-  opacity: 0.78;
-  pointer-events: none;
+.row-card.is-done .row-name::placeholder,
+.row-card.is-done .value-input::placeholder {
+  text-decoration: none;
 }
 
 .list-body.is-edit-mode .row-card {
@@ -1892,7 +1884,7 @@ select.input {
 
   .row-name {
     padding: 6px 8px;
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .value-input {

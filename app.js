@@ -521,14 +521,14 @@
     if (!field || !field.classList || !field.classList.contains('row-name')) return;
     const len = (field.value || '').length;
     if (len <= 16) {
-      field.style.fontSize = '14.5px';
-      field.style.lineHeight = '1.24';
+      field.style.fontSize = '12.5px';
+      field.style.lineHeight = '1.22';
     } else if (len <= 26) {
-      field.style.fontSize = '13px';
-      field.style.lineHeight = '1.2';
-    } else {
-      field.style.fontSize = '11.5px';
+      field.style.fontSize = '11px';
       field.style.lineHeight = '1.18';
+    } else {
+      field.style.fontSize = '9.5px';
+      field.style.lineHeight = '1.16';
     }
     field.style.height = 'auto';
     const scrollH = field.scrollHeight;
@@ -589,7 +589,7 @@
     const values = list.columns.map(function (column) {
       const value = row.values[column.id] || '';
       return '<div class="cell value-field" role="cell">' +
-        '<input class="value-input' + (column.type === 'number' ? ' is-number' : '') + '" type="text" value="' + escAttr(value) + '" placeholder="—" data-field="value" data-col-id="' + escAttr(column.id) + '"' + (column.type === 'number' ? ' inputmode="decimal"' : '') + editAttrs + ' enterkeyhint="next" autocomplete="off" spellcheck="false" aria-label="' + escAttr(column.name) + '">' +
+        '<input class="value-input' + (column.type === 'number' ? ' is-number' : '') + '" type="text" value="' + escAttr(value) + '" placeholder="" data-field="value" data-col-id="' + escAttr(column.id) + '"' + (column.type === 'number' ? ' inputmode="decimal"' : '') + editAttrs + ' enterkeyhint="next" autocomplete="off" spellcheck="false" aria-label="' + escAttr(column.name) + '">' +
         '</div>';
     }).join('');
     const rowLabel = row.name ? 'Abrir acciones de ' + row.name : 'Abrir acciones de la fila sin nombre';
