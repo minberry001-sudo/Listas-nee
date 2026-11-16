@@ -170,16 +170,11 @@
   }
 
   function saveStatusHTML() {
-    const labels = { saving: 'Guardando…', saved: 'Guardado', error: 'Sin guardar' };
-    return '<span class="save-status is-' + saveState + '" data-bind="save-status" aria-live="polite"><span class="save-dot"></span>' + labels[saveState] + '</span>';
+    return '';
   }
 
   function updateSaveBadge() {
-    const element = document.querySelector('[data-bind="save-status"]');
-    if (!element) return;
-    const labels = { saving: 'Guardando…', saved: 'Guardado', error: 'Sin guardar' };
-    element.className = 'save-status is-' + saveState;
-    element.innerHTML = '<span class="save-dot"></span>' + labels[saveState];
+    // El guardado ya no se muestra en la interfaz.
   }
 
   function parseRoute() {
@@ -515,12 +510,17 @@
 
   function adjustNameField(field) {
     if (!field || !field.classList || !field.classList.contains('row-name')) return;
+
     const len = (field.value || '').length;
     const fontSize = len <= 16 ? 12.5 : (len <= 26 ? 11 : 9.5);
+    const lineHeight = Math.round(fontSize * 1.3);
+
     field.style.fontSize = fontSize + 'px';
+    field.style.lineHeight = lineHeight + 'px';
     field.style.height = 'auto';
-    const scrollH = field.scrollHeight;
-    field.style.height = Math.max(40, scrollH) + 'px';
+
+    const lines = Math.max(1, Math.min(3, Math.round(field.scrollHeight / lineHeight)));
+    field.style.height = lines * lineHeight + 'px';
   }
 
   function renderListBody(list) {
