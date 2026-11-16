@@ -16,7 +16,7 @@ App personal para organizar carpetas, listas y registros. Funciona en el navegad
 - Búsqueda y filtros de pendientes y completadas.
 - Exportación completa a JSON, exportación de una lista a CSV e importación de copias.
 - Diálogos propios en lugar de `prompt`, `confirm` y `alert`: los formularios de carpeta y lista son pop-ups centrados; los menús siguen siendo hojas inferiores.
-- Diseño móvil primero, con celdas editables y tabla responsiva integrada.
+- Diseño móvil primero, con celdas editables y tabla responsiva integrada. El botón de acción principal —Nueva carpeta, Nueva lista o Añadir fila— vive fijo en la cabecera.
 - PWA instalable con manifest, service worker e iconos. La app abre sin conexión después de la primera visita.
 - Copia automática de los datos antiguos y opción de restaurarlos desde Ajustes.
 
