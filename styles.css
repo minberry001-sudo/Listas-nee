@@ -464,6 +464,32 @@ h1 {
   text-overflow: ellipsis;
 }
 
+.select-btn.edit-toggle[aria-pressed="true"] {
+  border-color: rgba(165, 167, 255, 0.45);
+  background: rgba(165, 167, 255, 0.12);
+  color: var(--accent);
+}
+
+.edit-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -4px 0 14px;
+  padding: 10px 14px;
+  border: 1px solid rgba(165, 167, 255, 0.28);
+  border-radius: 12px;
+  background: rgba(165, 167, 255, 0.08);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 580;
+}
+
+.edit-hint .icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -505,6 +531,7 @@ h1 {
   font-size: 12.5px;
 }
 
+.select-btn:disabled,
 .btn:disabled,
 .mini-btn:disabled {
   opacity: 0.42;
@@ -783,23 +810,17 @@ h1 {
   box-shadow: var(--shadow-card);
 }
 
-.table-head-viewport {
+.grid-head {
   position: sticky;
   top: 0;
   top: env(safe-area-inset-top, 0px);
   z-index: 25;
-  overflow: hidden;
-  border-radius: 13px 13px 0 0;
-  background: var(--surface-2);
-}
-
-.grid-head {
   display: grid;
   grid-template-columns: var(--row-cols);
   align-items: stretch;
-  min-width: var(--row-min);
   height: 42px;
   border-bottom: 1px solid var(--line);
+  border-radius: 13px 13px 0 0;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent), var(--surface-2);
 }
 
@@ -810,23 +831,6 @@ h1 {
 
 .grid-head > * + * {
   box-shadow: inset 1px 0 0 var(--line);
-}
-
-.head-check,
-.head-menu {
-  position: sticky;
-  z-index: 3;
-  background: var(--surface-2);
-}
-
-.head-check {
-  left: 0;
-  box-shadow: inset -1px 0 0 var(--line);
-}
-
-.head-menu {
-  right: 0;
-  box-shadow: -8px 0 14px rgba(0, 0, 0, 0.16), inset 1px 0 0 var(--line);
 }
 
 .col-head {
@@ -852,29 +856,18 @@ h1 {
   color: var(--text);
 }
 
-.col-head-name {
-  padding-left: 12px;
-  text-align: left;
+.col-head.col-head-name {
+  padding: 0 9px 0 44px;
+  text-align: center;
 }
 
 .col-head.is-number {
-  text-align: right;
-}
-
-.table-body-viewport {
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-x: contain;
-  border-radius: 0 0 13px 13px;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: var(--line-strong) transparent;
+  text-align: center;
 }
 
 .rows-container {
   display: flex;
   flex-direction: column;
-  min-width: var(--row-min);
 }
 
 .row-card {
@@ -882,7 +875,6 @@ h1 {
   display: grid;
   grid-template-columns: var(--row-cols);
   align-items: stretch;
-  min-width: var(--row-min);
   min-height: 50px;
   padding: 0;
   border: 0;
@@ -910,44 +902,16 @@ h1 {
   box-shadow: inset 1px 0 0 var(--line);
 }
 
-.cell-check {
-  justify-content: center;
-}
-
-.cell-name,
-.cell-value {
+.cell-name {
   padding: 0;
 }
 
-.cell-menu {
-  justify-content: center;
+.cell-name .row-check {
+  flex: 0 0 44px;
 }
 
-.cell-check,
-.cell-menu {
-  position: sticky;
-  z-index: 2;
-  background: var(--surface);
-}
-
-.cell-check {
-  left: 0;
-  box-shadow: inset -1px 0 0 var(--line);
-}
-
-.cell-menu {
-  right: 0;
-  box-shadow: -8px 0 14px rgba(0, 0, 0, 0.16), inset 1px 0 0 var(--line);
-}
-
-.row-card:hover .cell-check,
-.row-card:hover .cell-menu {
-  background: #15171e;
-}
-
-.row-card.is-done .cell-check,
-.row-card.is-done .cell-menu {
-  background: #151c1b;
+.cell-name .row-name {
+  flex: 1 1 0;
 }
 
 .row-check {
@@ -1021,6 +985,9 @@ h1 {
   font-size: 16px;
   font-weight: 620;
   letter-spacing: -0.005em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
   transition: background 0.16s, box-shadow 0.16s;
 }
 
@@ -1032,6 +999,7 @@ h1 {
 .row-name:focus {
   background: var(--bg-soft);
   box-shadow: inset 0 0 0 2px rgba(165, 167, 255, 0.4);
+  text-overflow: clip;
 }
 
 .value-field {
@@ -1053,6 +1021,9 @@ h1 {
   color: var(--text);
   font-size: 16px;
   font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
   transition: background 0.16s, box-shadow 0.16s;
 }
 
@@ -1061,30 +1032,13 @@ h1 {
 }
 
 .value-input.is-number {
-  text-align: right;
+  text-align: center;
 }
 
 .value-input:focus {
   background: var(--bg-soft);
   box-shadow: inset 0 0 0 2px rgba(165, 167, 255, 0.4);
-}
-
-.row-menu {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--muted-2);
-  transition: background 0.16s, color 0.16s;
-}
-
-.row-menu .icon {
-  width: 19px;
-  height: 19px;
+  text-overflow: clip;
 }
 
 .row-card.is-done {
@@ -1100,12 +1054,34 @@ h1 {
   content: "";
   position: absolute;
   top: 50%;
-  right: 48px;
+  right: 0;
   left: 44px;
   z-index: 1;
   height: 1px;
   background: var(--muted-2);
   opacity: 0.78;
+  pointer-events: none;
+}
+
+.list-body.is-edit-mode .row-card {
+  cursor: pointer;
+}
+
+.list-body.is-edit-mode .row-card:hover {
+  background: rgba(165, 167, 255, 0.055);
+}
+
+.list-body.is-edit-mode .row-card:active {
+  background: rgba(165, 167, 255, 0.09);
+}
+
+.list-body.is-edit-mode .row-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.list-body.is-edit-mode .row-name,
+.list-body.is-edit-mode .value-input {
   pointer-events: none;
 }
 
@@ -1121,30 +1097,6 @@ h1 {
   display: none;
 }
 
-.totals {
-  display: flex;
-  gap: 7px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-}
-
-.total-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 11px;
-  border: 1px solid var(--line);
-  border-radius: 11px;
-  background: var(--surface);
-  color: var(--muted);
-  font-size: 11.5px;
-}
-
-.total-chip strong {
-  color: var(--text);
-  font-size: 12.5px;
-  font-variant-numeric: tabular-nums;
-}
 
 /* Empty states */
 .empty-state {
@@ -1734,7 +1686,6 @@ select.input {
 
   .icon-btn:hover,
   .card-menu:hover,
-  .row-menu:hover,
   .mini-btn:hover {
     border-color: var(--line);
     background: var(--surface-2);
@@ -1872,6 +1823,10 @@ select.input {
 
   .col-head {
     padding: 0 12px;
+  }
+
+  .col-head.col-head-name {
+    padding: 0 12px 0 44px;
   }
 
   .row-card {

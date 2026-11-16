@@ -7,15 +7,16 @@ App personal para organizar carpetas, listas y registros. Funciona en el navegad
 ## Qué incluye
 
 - Carpetas con listas dentro y edición directa de cada fila.
-- Vista de lista tipo hoja de cálculo, con encabezados, columnas alineadas y desplazamiento horizontal cuando haga falta.
-- Al marcar una fila como hecha, se tacha de extremo a extremo.
-- Columnas de texto o número, con totales automáticos para las numéricas.
-- Añadir filas al final o entre dos filas, duplicar y mover.
+- Vista de lista tipo tabla responsiva al 100 % del ancho del dispositivo, sin scroll horizontal y con encabezados fijos.
+- Al marcar una fila como hecha, se tacha de forma continua a partir del selector.
+- Columnas de texto o número: encabezados y números centrados, textos y nombres a la izquierda con truncado inteligente.
+- Modo «Editar» para insertar, duplicar, mover o eliminar filas sin ocupar columnas extra ni botones innecesarios.
+- Al crear una lista nueva, se incluye su primera fila enfocada lista para escribir.
 - Orden manual, por nombre, por última edición o por fecha de creación. El orden elegido se recuerda por vista.
 - Búsqueda y filtros de pendientes y completadas.
 - Exportación completa a JSON, exportación de una lista a CSV e importación de copias.
 - Diálogos propios en lugar de `prompt`, `confirm` y `alert`.
-- Diseño móvil primero, con celdas editables y tabla desplazable.
+- Diseño móvil primero, con celdas editables y tabla responsiva integrada.
 - PWA instalable con manifest, service worker e iconos. La app abre sin conexión después de la primera visita.
 - Copia automática de los datos antiguos y opción de restaurarlos desde Ajustes.
 
@@ -23,8 +24,8 @@ App personal para organizar carpetas, listas y registros. Funciona en el navegad
 
 1. Abre la web en el móvil.
 2. Crea una carpeta y después una lista.
-3. Pulsa una fila para editarla. Usa Intro para pasar al siguiente campo o crear una fila nueva al final.
-4. Usa el botón de tres puntos de cada fila para insertar, duplicar, mover o eliminar.
+3. Escribe directamente en las celdas de la fila. Usa Intro para pasar al siguiente campo o crear una fila nueva al final.
+4. Activa el botón «Editar» en la barra de herramientas y pulsa cualquier fila para insertar, duplicar, mover o eliminar.
 5. En Ajustes puedes instalar la app, exportar una copia y restaurarla.
 
 En iPhone, la instalación se hace desde Safari: **Compartir → Añadir a pantalla de inicio**.
