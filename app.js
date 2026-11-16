@@ -263,18 +263,20 @@
     else renderHome();
   }
 
-  function brandTopbar() {
+  function brandTopbar(addAction, addLabel) {
     return '<header class="topbar">' +
       '<div class="topbar-left"><span class="brand-mark">' + icon('list') + '</span><span class="brand">Mis listas</span></div>' +
       '<div class="topbar-actions">' + saveStatusHTML() +
+      (addAction ? headerAddHTML(addAction, addLabel) : '') +
       '<button type="button" class="icon-btn" data-action="open-settings" aria-label="Ajustes y copias de seguridad">' + icon('settings') + '</button>' +
       '</div></header>';
   }
 
-  function pageTopbar(backAction, backLabel, menuAction, menuLabel) {
+  function pageTopbar(backAction, backLabel, menuAction, menuLabel, addAction, addLabel, addId) {
     return '<header class="topbar">' +
       '<div class="topbar-left"><button type="button" class="back-btn" data-action="' + backAction + '" aria-label="Volver a ' + escAttr(backLabel) + '">' + icon('chevron-left') + '<span>' + esc(backLabel) + '</span></button></div>' +
       '<div class="topbar-actions">' + saveStatusHTML() +
+      (addAction ? headerAddHTML(addAction, addLabel, addId) : '') +
       '<button type="button" class="icon-btn" data-action="' + menuAction + '" aria-label="' + escAttr(menuLabel || 'Más opciones') + '">' + icon('more') + '</button>' +
       '</div></header>';
   }
@@ -288,8 +290,8 @@
       '</div>';
   }
 
-  function fabHTML(action, label) {
-    return '<button type="button" class="fab" data-action="' + action + '">' + icon('plus') + '<span>' + esc(label) + '</span></button>';
+  function headerAddHTML(action, label, id) {
+    return '<button type="button" class="btn primary header-add" data-action="' + action + '"' + (id ? ' data-id="' + escAttr(id) + '"' : '') + '>' + icon('plus') + '<span>' + esc(label) + '</span></button>';
   }
 
   function emptyStateHTML(options) {
@@ -309,7 +311,7 @@
   function renderHome() {
     const counts = D.countData(data);
     const sortMode = settings.folderSort || 'manual';
-    app.innerHTML = brandTopbar() +
+    app.innerHTML = brandTopbar('new-folder', 'Nueva carpeta') +
       '<main class="page home-page">' +
       '<section class="hero">' +
       '<div class="eyebrow">Tu espacio personal</div>' +
@@ -319,10 +321,8 @@
       '<div class="toolbar">' +
       searchHTML('home', 'Buscar carpetas…') +
       '<button type="button" class="select-btn" data-action="sort-folders">' + icon('sort') + '<span>Ordenar:</span><strong data-sort-label>' + esc(D.sortLabel(sortMode)) + '</strong></button>' +
-      '<button type="button" class="btn primary desktop-add" data-action="new-folder">' + icon('plus') + 'Nueva carpeta</button>' +
       '</div>' +
       '<div id="homeFolders" class="folder-grid"></div>' +
-      fabHTML('new-folder', 'Nueva carpeta') +
       '</main>';
     updateHomeFolders();
     updateSaveBadge();
@@ -384,7 +384,7 @@
     }
     const counts = D.countData({ folders: [folder] });
     const sortMode = settings.listSort[folder.id] || 'manual';
-    app.innerHTML = pageTopbar('go-home', 'Carpetas', 'folder-menu', 'Opciones de la carpeta') +
+    app.innerHTML = pageTopbar('go-home', 'Carpetas', 'folder-menu', 'Opciones de la carpeta', 'new-list', 'Nueva lista', folder.id) +
       '<main class="page">' +
       '<section class="hero">' +
       '<div class="eyebrow">Carpeta</div>' +
@@ -394,10 +394,8 @@
       '<div class="toolbar">' +
       searchHTML('folder', 'Buscar listas…') +
       '<button type="button" class="select-btn" data-action="sort-lists" data-id="' + escAttr(folder.id) + '">' + icon('sort') + '<span>Ordenar:</span><strong data-sort-label>' + esc(D.sortLabel(sortMode)) + '</strong></button>' +
-      '<button type="button" class="btn primary desktop-add" data-action="new-list" data-id="' + escAttr(folder.id) + '">' + icon('plus') + 'Nueva lista</button>' +
       '</div>' +
       '<div id="folderLists" class="list-grid"></div>' +
-      fabHTML('new-list', 'Nueva lista') +
       '</main>';
     updateFolderLists(folder);
     updateSaveBadge();
@@ -482,7 +480,7 @@
     const sortMode = settings.rowSort[list.id] || 'manual';
     if (!stats.total) ui.editRows = false;
 
-    app.innerHTML = pageTopbar('go-folder', folder.name, 'list-menu', 'Opciones de la lista') +
+    app.innerHTML = pageTopbar('go-folder', folder.name, 'list-menu', 'Opciones de la lista', 'add-row', 'Añadir fila') +
       '<main class="page">' +
       '<section class="hero list-hero">' +
       '<div class="hero-copy"><div class="eyebrow">Lista</div><h1>' + esc(list.name) + '</h1><p class="lede" data-bind="list-lede">' + esc(listLede(list)) + '</p></div>' +
@@ -493,7 +491,6 @@
       searchHTML('list', 'Buscar en la lista…') +
       '<button type="button" class="select-btn" data-action="sort-rows" data-id="' + escAttr(list.id) + '">' + icon('sort') + '<span>Ordenar:</span><strong data-sort-label>' + esc(D.sortLabel(sortMode)) + '</strong></button>' +
       '<button type="button" class="select-btn edit-toggle" data-action="toggle-row-edit" aria-pressed="' + (ui.editRows ? 'true' : 'false') + '"' + (stats.total ? '' : ' disabled') + '>' + icon(ui.editRows ? 'check' : 'pencil') + '<span>' + (ui.editRows ? 'Listo' : 'Editar') + '</span></button>' +
-      '<button type="button" class="btn primary desktop-add" data-action="add-row">' + icon('plus') + 'Añadir fila</button>' +
       '</div>' +
       '<p class="edit-hint" data-bind="edit-hint"' + (ui.editRows ? '' : ' hidden') + '>' + icon('pencil') + ' Toca una fila para ver sus acciones.</p>' +
       '<div class="chips" role="group" aria-label="Filtrar filas">' +
@@ -502,7 +499,6 @@
       filterChip('done', 'Hechas', stats.done) +
       '</div>' +
       '<div id="listBody" class="list-body"></div>' +
-      fabHTML('add-row', 'Añadir fila') +
       '</main>';
 
     renderListBody(list);
@@ -520,28 +516,11 @@
   function adjustNameField(field) {
     if (!field || !field.classList || !field.classList.contains('row-name')) return;
     const len = (field.value || '').length;
-    let fontSize, lineHeight;
-    if (len <= 16) {
-      fontSize = 12.5;
-      lineHeight = 1.22;
-    } else if (len <= 26) {
-      fontSize = 11;
-      lineHeight = 1.18;
-    } else {
-      fontSize = 9.5;
-      lineHeight = 1.16;
-    }
+    const fontSize = len <= 16 ? 12.5 : (len <= 26 ? 11 : 9.5);
     field.style.fontSize = fontSize + 'px';
-    field.style.lineHeight = String(lineHeight);
     field.style.height = 'auto';
     const scrollH = field.scrollHeight;
-    const lineH = Math.round(fontSize * lineHeight);
-    const lines = Math.max(1, Math.round(scrollH / lineH));
-    const height = Math.max(lineH, Math.min(96, scrollH));
-    field.style.height = height + 'px';
-    field.style.paddingTop = '0px';
-    field.style.paddingBottom = '0px';
-    field.closest('.name-wrap').style.minHeight = Math.max(28, height + 8) + 'px';
+    field.style.height = Math.max(40, scrollH) + 'px';
   }
 
   function renderListBody(list) {
