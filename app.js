@@ -511,18 +511,31 @@
     const body = document.getElementById('listBody');
     if (!body) return;
 
-    let rowTemplate = '48px minmax(120px,1.6fr)';
-    if (list.columns.length) rowTemplate += ' repeat(' + list.columns.length + ', minmax(0,1fr))';
-    rowTemplate += ' 52px';
+    const previousScroll = document.getElementById('tableBodyViewport');
+    const scrollLeft = previousScroll ? previousScroll.scrollLeft : 0;
+
+    const minWidth = 44 + 180 + (list.columns.length * 110) + 48;
+    let rowTemplate = '44px minmax(180px, 1.6fr)';
+    if (list.columns.length) rowTemplate += ' repeat(' + list.columns.length + ', minmax(110px, 1fr))';
+    rowTemplate += ' 48px';
     body.style.setProperty('--row-cols', rowTemplate);
+    body.style.setProperty('--row-min', minWidth + 'px');
 
     const visible = visibleRows(list);
     const hasRows = list.rows.length > 0;
     const emptyFiltered = hasRows && visible.length === 0;
 
-    body.innerHTML = gridHeadHTML(list) +
-      '<div id="rowsContainer" class="rows-container">' +
-      visible.map(function (row) { return rowHTML(row, list); }).join('') +
+    body.innerHTML =
+      '<div class="table-shell" role="table" aria-label="Filas de la lista">' +
+        '<div class="table-head-viewport" id="tableHeadViewport" role="presentation">' +
+          gridHeadHTML(list) +
+        '</div>' +
+        '<div class="table-body-viewport" id="tableBodyViewport" role="presentation">' +
+          '<div id="rowsContainer" class="rows-container" role="rowgroup">' +
+            visible.map(function (row) { return rowHTML(row, list); }).join('') +
+          '</div>' +
+        '</div>' +
+      '</div>' +
       (!hasRows ? emptyStateHTML({
         iconName: 'list',
         title: 'Esta lista está vacía',
@@ -531,38 +544,55 @@
         actionLabel: 'Añadir fila'
       }) : '') +
       (hasRows ? '<div class="empty-state filter-empty" id="filterEmpty" hidden></div>' : '') +
-      '</div>' +
       '<button type="button" class="add-row-inline" data-action="add-row">' + icon('plus') + 'Añadir fila</button>';
 
+    setupTableScroll(scrollLeft);
     if (emptyFiltered) updateFilterEmpty(list);
+  }
+
+  function setupTableScroll(scrollLeft) {
+    const head = document.getElementById('tableHeadViewport');
+    const body = document.getElementById('tableBodyViewport');
+    if (!head || !body) return;
+    function sync() {
+      head.scrollLeft = body.scrollLeft;
+    }
+    body.addEventListener('scroll', sync, { passive: true });
+    if (scrollLeft) body.scrollLeft = scrollLeft;
+    sync();
   }
 
   function gridHeadHTML(list) {
     const columns = list.columns.map(function (column) {
-      return '<button type="button" class="col-head" data-action="open-columns" title="Editar columnas">' + esc(column.name) + '</button>';
+      return '<button type="button" class="col-head' + (column.type === 'number' ? ' is-number' : '') + '" data-action="open-columns" title="Editar columnas" role="columnheader">' + esc(column.name) + '</button>';
     }).join('');
-    return '<div class="grid-head">' +
-      '<span></span>' +
-      '<button type="button" class="col-head col-head-name" data-action="open-columns" title="Editar columnas">Nombre</button>' +
+    return '<div class="grid-head" role="row">' +
+      '<span class="head-cell head-check" role="columnheader" aria-label="Completada"></span>' +
+      '<button type="button" class="col-head col-head-name" data-action="open-columns" title="Editar columnas" role="columnheader">Nombre</button>' +
       columns +
-      '<span></span>' +
+      '<span class="head-cell head-menu" role="columnheader" aria-label="Opciones"></span>' +
       '</div>';
   }
 
   function rowHTML(row, list) {
     const values = list.columns.map(function (column) {
       const value = row.values[column.id] || '';
-      return '<label class="value-field">' +
-        '<span class="value-label">' + esc(column.name) + '</span>' +
+      return '<div class="cell value-field" role="cell">' +
         '<input class="value-input' + (column.type === 'number' ? ' is-number' : '') + '" type="text" value="' + escAttr(value) + '" placeholder="—" data-field="value" data-col-id="' + escAttr(column.id) + '"' + (column.type === 'number' ? ' inputmode="decimal"' : '') + ' enterkeyhint="next" autocomplete="off" spellcheck="false" aria-label="' + escAttr(column.name) + '">' +
-        '</label>';
+        '</div>';
     }).join('');
 
-    return '<div class="row-card' + (row.done ? ' is-done' : '') + '" data-row-id="' + escAttr(row.id) + '">' +
+    return '<div class="row-card' + (row.done ? ' is-done' : '') + '" data-row-id="' + escAttr(row.id) + '" role="row">' +
+      '<div class="cell cell-check" role="cell">' +
       '<input class="row-check" type="checkbox"' + (row.done ? ' checked' : '') + ' data-check-row="' + escAttr(row.id) + '" aria-label="' + (row.done ? 'Marcar como pendiente' : 'Marcar como completada') + '">' +
+      '</div>' +
+      '<div class="cell cell-name" role="cell">' +
       '<input class="row-name" type="text" value="' + escAttr(row.name) + '" placeholder="Sin nombre" data-field="name" enterkeyhint="next" autocomplete="off" spellcheck="false" aria-label="Nombre de la fila">' +
+      '</div>' +
       values +
+      '<div class="cell cell-menu" role="cell">' +
       '<button type="button" class="row-menu" data-action="row-menu" data-id="' + escAttr(row.id) + '" aria-label="Opciones de la fila">' + icon('more') + '</button>' +
+      '</div>' +
       '</div>';
   }
 

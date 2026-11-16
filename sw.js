@@ -1,6 +1,6 @@
 /* Service worker de Mis listas.
    Cambia CACHE_NAME al publicar una versión nueva de los archivos. */
-const CACHE_NAME = 'mis-listas-v3.0.0';
+const CACHE_NAME = 'mis-listas-v3.1.0';
 
 const CORE_FILES = [
   './',

@@ -7,13 +7,15 @@ App personal para organizar carpetas, listas y registros. Funciona en el navegad
 ## Qué incluye
 
 - Carpetas con listas dentro y edición directa de cada fila.
+- Vista de lista tipo hoja de cálculo, con encabezados, columnas alineadas y desplazamiento horizontal cuando haga falta.
+- Al marcar una fila como hecha, se tacha de extremo a extremo.
 - Columnas de texto o número, con totales automáticos para las numéricas.
 - Añadir filas al final o entre dos filas, duplicar y mover.
 - Orden manual, por nombre, por última edición o por fecha de creación. El orden elegido se recuerda por vista.
 - Búsqueda y filtros de pendientes y completadas.
 - Exportación completa a JSON, exportación de una lista a CSV e importación de copias.
 - Diálogos propios en lugar de `prompt`, `confirm` y `alert`.
-- Diseño móvil primero, con tarjetas editables sin desplazamiento horizontal.
+- Diseño móvil primero, con celdas editables y tabla desplazable.
 - PWA instalable con manifest, service worker e iconos. La app abre sin conexión después de la primera visita.
 - Copia automática de los datos antiguos y opción de restaurarlos desde Ajustes.
 
