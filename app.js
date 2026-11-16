@@ -588,8 +588,10 @@
     const editAttrs = ui.editRows ? ' readonly tabindex="-1"' : '';
     const values = list.columns.map(function (column) {
       const value = row.values[column.id] || '';
-      return '<div class="cell value-field" role="cell">' +
-        '<input class="value-input' + (column.type === 'number' ? ' is-number' : '') + '" type="text" value="' + escAttr(value) + '" placeholder="" data-field="value" data-col-id="' + escAttr(column.id) + '"' + (column.type === 'number' ? ' inputmode="decimal"' : '') + editAttrs + ' enterkeyhint="next" autocomplete="off" spellcheck="false" aria-label="' + escAttr(column.name) + '">' +
+      const numberClass = column.type === 'number' ? ' is-number' : '';
+      return '<div class="cell value-field' + numberClass + '" role="cell">' +
+        '<span class="value-display' + numberClass + '" data-value-display="' + escAttr(column.id) + '" aria-hidden="true">' + esc(value) + '</span>' +
+        '<input class="value-input' + numberClass + '" type="text" value="' + escAttr(value) + '" placeholder="" data-field="value" data-col-id="' + escAttr(column.id) + '"' + (column.type === 'number' ? ' inputmode="decimal"' : '') + editAttrs + ' enterkeyhint="next" autocomplete="off" spellcheck="false" aria-label="' + escAttr(column.name) + '">' +
         '</div>';
     }).join('');
     const rowLabel = row.name ? 'Abrir acciones de ' + row.name : 'Abrir acciones de la fila sin nombre';
@@ -695,6 +697,14 @@
     scheduleSave();
   }
 
+  function syncValueDisplay(field) {
+    if (!field || field.getAttribute('data-field') !== 'value') return;
+    const rowElement = field.closest('.row-card');
+    if (!rowElement) return;
+    const display = rowElement.querySelector('[data-value-display="' + field.getAttribute('data-col-id') + '"]');
+    if (display) display.textContent = field.value;
+  }
+
   function commitField(field, trim) {
     if (!field || !field.closest('.row-card')) return;
     const ctx = currentList();
@@ -710,7 +720,10 @@
     }
 
     if (field.getAttribute('data-field') === 'name') row.name = value;
-    else row.values[field.getAttribute('data-col-id')] = value;
+    else {
+      row.values[field.getAttribute('data-col-id')] = value;
+      syncValueDisplay(field);
+    }
 
     touchRow(ctx.folder, ctx.list, row);
     updateListStats(ctx.list);
@@ -725,7 +738,10 @@
     if (!row) return;
 
     if (field.getAttribute('data-field') === 'name') row.name = field.value;
-    else row.values[field.getAttribute('data-col-id')] = field.value;
+    else {
+      row.values[field.getAttribute('data-col-id')] = field.value;
+      syncValueDisplay(field);
+    }
 
     touchRow(ctx.folder, ctx.list, row);
     updateListStats(ctx.list);
@@ -2070,6 +2086,7 @@
     const field = event.target.closest('[data-field]');
     if (field) {
       if (field.classList.contains('row-name')) adjustNameField(field);
+      syncValueDisplay(field);
       updateFieldFromInput(field);
     }
   }
@@ -2085,6 +2102,7 @@
     const field = event.target.closest('[data-field]');
     if (!field) return;
     field.dataset.original = field.value;
+    field.closest('.value-field') && field.closest('.value-field').classList.add('is-focused');
     if (field.select) field.select();
   }
 
@@ -2140,7 +2158,10 @@
         const row = ctx.list.rows.find(function (item) { return item.id === rowElement.getAttribute('data-row-id'); });
         if (row) {
           if (field.getAttribute('data-field') === 'name') row.name = field.value;
-          else row.values[field.getAttribute('data-col-id')] = field.value;
+          else {
+            row.values[field.getAttribute('data-col-id')] = field.value;
+            syncValueDisplay(field);
+          }
           touchRow(ctx.folder, ctx.list, row);
           updateListStats(ctx.list);
         }
@@ -2174,6 +2195,8 @@
   function handleFieldBlur(event) {
     const field = event.target.closest('[data-field]');
     if (!field) return;
+    const valueField = field.closest('.value-field');
+    if (valueField) valueField.classList.remove('is-focused');
     commitField(field, true);
   }
 
