@@ -520,21 +520,28 @@
   function adjustNameField(field) {
     if (!field || !field.classList || !field.classList.contains('row-name')) return;
     const len = (field.value || '').length;
+    let fontSize, lineHeight;
     if (len <= 16) {
-      field.style.fontSize = '12.5px';
-      field.style.lineHeight = '1.22';
+      fontSize = 12.5;
+      lineHeight = 1.22;
     } else if (len <= 26) {
-      field.style.fontSize = '11px';
-      field.style.lineHeight = '1.18';
+      fontSize = 11;
+      lineHeight = 1.18;
     } else {
-      field.style.fontSize = '9.5px';
-      field.style.lineHeight = '1.16';
+      fontSize = 9.5;
+      lineHeight = 1.16;
     }
+    field.style.fontSize = fontSize + 'px';
+    field.style.lineHeight = String(lineHeight);
     field.style.height = 'auto';
     const scrollH = field.scrollHeight;
-    if (scrollH > 0) {
-      field.style.height = Math.max(28, scrollH) + 'px';
-    }
+    const lineH = Math.round(fontSize * lineHeight);
+    const lines = Math.max(1, Math.round(scrollH / lineH));
+    const height = Math.max(lineH, Math.min(96, scrollH));
+    field.style.height = height + 'px';
+    field.style.paddingTop = '0px';
+    field.style.paddingBottom = '0px';
+    field.closest('.name-wrap').style.minHeight = Math.max(28, height + 8) + 'px';
   }
 
   function renderListBody(list) {
@@ -599,7 +606,7 @@
     return '<div class="row-card' + (row.done ? ' is-done' : '') + '" data-row-id="' + escAttr(row.id) + '" role="row"' + (ui.editRows ? ' tabindex="0" aria-label="' + escAttr(rowLabel) + '"' : '') + '>' +
       '<div class="cell cell-name" role="cell">' +
       '<input class="row-check" type="checkbox"' + (row.done ? ' checked' : '') + ' data-check-row="' + escAttr(row.id) + '" aria-label="' + (row.done ? 'Marcar como pendiente' : 'Marcar como completada') + '">' +
-      '<textarea class="row-name" rows="1" placeholder="Sin nombre" data-field="name"' + editAttrs + ' enterkeyhint="next" autocomplete="off" spellcheck="false" aria-label="Nombre de la fila">' + esc(row.name) + '</textarea>' +
+      '<div class="name-wrap"><textarea class="row-name" rows="1" placeholder="Sin nombre" data-field="name"' + editAttrs + ' enterkeyhint="next" autocomplete="off" spellcheck="false" aria-label="Nombre de la fila">' + esc(row.name) + '</textarea></div>' +
       '</div>' +
       values +
       '</div>';
@@ -963,6 +970,7 @@
   function openTextPrompt(options) {
     const formId = 'form_' + D.uid();
     const sheet = openSheet({
+      variant: 'dialog',
       title: options.title,
       subtitle: options.subtitle || '',
       body: '<form id="' + formId + '" novalidate>' +
@@ -1040,12 +1048,13 @@
       actions: '',
       dismissible: true,
       onMount: null,
-      className: ''
+      className: '',
+      variant: 'sheet'
     }, options || {});
     const titleId = 'sheet-title-' + (++sheetCounter);
     const overlay = document.createElement('div');
-    overlay.className = 'overlay';
-    overlay.innerHTML = '<div class="sheet ' + opts.className + '" role="dialog" aria-modal="true" aria-labelledby="' + titleId + '" tabindex="-1">' +
+    overlay.className = 'overlay' + (opts.variant === 'dialog' ? ' is-dialog' : '');
+    overlay.innerHTML = '<div class="sheet ' + opts.className + (opts.variant === 'dialog' ? ' is-dialog' : '') + '" role="dialog" aria-modal="true" aria-labelledby="' + titleId + '" tabindex="-1">' +
       '<div class="sheet-grabber" aria-hidden="true"></div>' +
       '<div class="sheet-head"><div><h2 class="sheet-title" id="' + titleId + '">' + esc(opts.title) + '</h2>' +
       (opts.subtitle ? '<p class="sheet-sub">' + esc(opts.subtitle) + '</p>' : '') + '</div>' +
@@ -1228,6 +1237,7 @@
     const formId = 'newlist_' + D.uid();
     const draft = [D.newColumn('Columna 1', 'number'), D.newColumn('Columna 2', 'number')];
     const sheet = openSheet({
+      variant: 'dialog',
       title: 'Nueva lista',
       subtitle: 'Ponle un nombre y define sus columnas.',
       body: '<form id="' + formId + '" novalidate>' +

@@ -955,7 +955,7 @@ h1 {
   flex: 0 0 34px;
 }
 
-.cell-name .row-name {
+.cell-name .name-wrap {
   flex: 1 1 0;
 }
 
@@ -1017,12 +1017,20 @@ h1 {
   opacity: 1;
 }
 
+.name-wrap {
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 4px 0;
+}
+
 .row-name {
   width: 100%;
   min-width: 0;
   min-height: 28px;
   max-height: 96px;
-  padding: 5px 6px;
+  padding: 0 6px;
   border: 0;
   border-radius: 0;
   outline: none;
@@ -1165,6 +1173,10 @@ h1 {
 .list-body.is-edit-mode .row-name,
 .list-body.is-edit-mode .value-input {
   pointer-events: none;
+}
+
+.list-body.is-edit-mode .name-wrap {
+  cursor: pointer;
 }
 
 .row-card.is-filtered-out {
@@ -1319,6 +1331,43 @@ h1 {
 
 .overlay.is-closing .sheet {
   animation: sheetDown 0.18s ease-in forwards;
+}
+
+/* Centered pop-up dialogs for quick forms */
+.overlay.is-dialog {
+  align-items: center;
+  padding: 20px;
+}
+
+.overlay.is-dialog .sheet {
+  width: 100%;
+  max-width: 440px;
+  max-height: 86dvh;
+  padding-bottom: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 20px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+  animation: dialogIn 0.2s cubic-bezier(0.22, 0.8, 0.3, 1);
+}
+
+.overlay.is-dialog .sheet-grabber {
+  display: none;
+}
+
+.overlay.is-dialog .sheet-head {
+  padding: 20px 20px 8px;
+}
+
+.overlay.is-dialog .sheet-body {
+  padding: 6px 20px 8px;
+}
+
+.overlay.is-dialog .sheet-actions {
+  padding: 12px 20px 18px;
+}
+
+.overlay.is-dialog.is-closing .sheet {
+  animation: dialogOut 0.16s ease-in forwards;
 }
 
 .sheet-text {
@@ -1994,6 +2043,33 @@ select.input {
     animation: popOut 0.18s ease-in forwards;
   }
 
+  .overlay.is-dialog {
+    padding: 20px;
+  }
+
+  .overlay.is-dialog .sheet {
+    max-width: 440px;
+    max-height: 86dvh;
+    border-radius: 20px;
+    animation: dialogIn 0.2s cubic-bezier(0.22, 0.8, 0.3, 1);
+  }
+
+  .overlay.is-dialog .sheet-head {
+    padding: 20px 20px 8px;
+  }
+
+  .overlay.is-dialog .sheet-body {
+    padding: 6px 20px 8px;
+  }
+
+  .overlay.is-dialog .sheet-actions {
+    padding: 12px 20px 18px;
+  }
+
+  .overlay.is-dialog.is-closing .sheet {
+    animation: dialogOut 0.16s ease-in forwards;
+  }
+
   .toast-root {
     bottom: 24px;
   }
@@ -2098,6 +2174,16 @@ select.input {
 @keyframes sheetDown {
   from { opacity: 1; transform: none; }
   to { opacity: 0; transform: translateY(24px); }
+}
+
+@keyframes dialogIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes dialogOut {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(8px) scale(0.98); }
 }
 
 @keyframes popIn {
