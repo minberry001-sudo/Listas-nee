@@ -23,6 +23,7 @@
   const ui = {
     search: { home: '', folder: '', list: '' },
     filter: 'all',
+    editRows: false,
     scroll: Object.create(null)
   };
 
@@ -226,6 +227,7 @@
     ui.search.folder = '';
     ui.search.list = '';
     ui.filter = 'all';
+    ui.editRows = false;
   }
 
   function handleRoute(initial) {
@@ -472,6 +474,7 @@
     const stats = D.countList(list);
     const percent = stats.total ? Math.round((stats.done / stats.total) * 100) : 0;
     const sortMode = settings.rowSort[list.id] || 'manual';
+    if (!stats.total) ui.editRows = false;
 
     app.innerHTML = pageTopbar('go-folder', folder.name, 'list-menu', 'Opciones de la lista') +
       '<main class="page">' +
@@ -483,15 +486,16 @@
       '<div class="toolbar">' +
       searchHTML('list', 'Buscar en la lista…') +
       '<button type="button" class="select-btn" data-action="sort-rows" data-id="' + escAttr(list.id) + '">' + icon('sort') + '<span>Ordenar:</span><strong data-sort-label>' + esc(D.sortLabel(sortMode)) + '</strong></button>' +
+      '<button type="button" class="select-btn edit-toggle" data-action="toggle-row-edit" aria-pressed="' + (ui.editRows ? 'true' : 'false') + '"' + (stats.total ? '' : ' disabled') + '>' + icon(ui.editRows ? 'check' : 'pencil') + '<span>' + (ui.editRows ? 'Listo' : 'Editar') + '</span></button>' +
       '<button type="button" class="btn primary desktop-add" data-action="add-row">' + icon('plus') + 'Añadir fila</button>' +
       '</div>' +
+      '<p class="edit-hint" data-bind="edit-hint"' + (ui.editRows ? '' : ' hidden') + '>' + icon('pencil') + ' Toca una fila para ver sus acciones.</p>' +
       '<div class="chips" role="group" aria-label="Filtrar filas">' +
       filterChip('all', 'Todas', stats.total) +
       filterChip('pending', 'Pendientes', stats.pending) +
       filterChip('done', 'Hechas', stats.done) +
       '</div>' +
       '<div id="listBody" class="list-body"></div>' +
-      '<div id="listTotals" class="totals" data-bind="totals"></div>' +
       fabHTML('add-row', 'Añadir fila') +
       '</main>';
 
@@ -511,15 +515,10 @@
     const body = document.getElementById('listBody');
     if (!body) return;
 
-    const previousScroll = document.getElementById('tableBodyViewport');
-    const scrollLeft = previousScroll ? previousScroll.scrollLeft : 0;
-
-    const minWidth = 44 + 180 + (list.columns.length * 110) + 48;
-    let rowTemplate = '44px minmax(180px, 1.6fr)';
-    if (list.columns.length) rowTemplate += ' repeat(' + list.columns.length + ', minmax(110px, 1fr))';
-    rowTemplate += ' 48px';
+    let rowTemplate = 'minmax(0, 2.6fr)';
+    if (list.columns.length) rowTemplate += ' repeat(' + list.columns.length + ', minmax(0, 1fr))';
     body.style.setProperty('--row-cols', rowTemplate);
-    body.style.setProperty('--row-min', minWidth + 'px');
+    body.classList.toggle('is-edit-mode', ui.editRows);
 
     const visible = visibleRows(list);
     const hasRows = list.rows.length > 0;
@@ -527,39 +526,16 @@
 
     body.innerHTML =
       '<div class="table-shell" role="table" aria-label="Filas de la lista">' +
-        '<div class="table-head-viewport" id="tableHeadViewport" role="presentation">' +
-          gridHeadHTML(list) +
-        '</div>' +
-        '<div class="table-body-viewport" id="tableBodyViewport" role="presentation">' +
-          '<div id="rowsContainer" class="rows-container" role="rowgroup">' +
-            visible.map(function (row) { return rowHTML(row, list); }).join('') +
-          '</div>' +
+        gridHeadHTML(list) +
+        '<div id="rowsContainer" class="rows-container" role="rowgroup">' +
+          visible.map(function (row) { return rowHTML(row, list); }).join('') +
         '</div>' +
       '</div>' +
-      (!hasRows ? emptyStateHTML({
-        iconName: 'list',
-        title: 'Esta lista está vacía',
-        text: 'Añade tu primera fila y escribe lo que necesites.',
-        action: 'add-row',
-        actionLabel: 'Añadir fila'
-      }) : '') +
       (hasRows ? '<div class="empty-state filter-empty" id="filterEmpty" hidden></div>' : '') +
       '<button type="button" class="add-row-inline" data-action="add-row">' + icon('plus') + 'Añadir fila</button>';
 
-    setupTableScroll(scrollLeft);
     if (emptyFiltered) updateFilterEmpty(list);
-  }
-
-  function setupTableScroll(scrollLeft) {
-    const head = document.getElementById('tableHeadViewport');
-    const body = document.getElementById('tableBodyViewport');
-    if (!head || !body) return;
-    function sync() {
-      head.scrollLeft = body.scrollLeft;
-    }
-    body.addEventListener('scroll', sync, { passive: true });
-    if (scrollLeft) body.scrollLeft = scrollLeft;
-    sync();
+    updateEditModeUI();
   }
 
   function gridHeadHTML(list) {
@@ -567,32 +543,27 @@
       return '<button type="button" class="col-head' + (column.type === 'number' ? ' is-number' : '') + '" data-action="open-columns" title="Editar columnas" role="columnheader">' + esc(column.name) + '</button>';
     }).join('');
     return '<div class="grid-head" role="row">' +
-      '<span class="head-cell head-check" role="columnheader" aria-label="Completada"></span>' +
       '<button type="button" class="col-head col-head-name" data-action="open-columns" title="Editar columnas" role="columnheader">Nombre</button>' +
       columns +
-      '<span class="head-cell head-menu" role="columnheader" aria-label="Opciones"></span>' +
       '</div>';
   }
 
   function rowHTML(row, list) {
+    const editAttrs = ui.editRows ? ' readonly tabindex="-1"' : '';
     const values = list.columns.map(function (column) {
       const value = row.values[column.id] || '';
       return '<div class="cell value-field" role="cell">' +
-        '<input class="value-input' + (column.type === 'number' ? ' is-number' : '') + '" type="text" value="' + escAttr(value) + '" placeholder="—" data-field="value" data-col-id="' + escAttr(column.id) + '"' + (column.type === 'number' ? ' inputmode="decimal"' : '') + ' enterkeyhint="next" autocomplete="off" spellcheck="false" aria-label="' + escAttr(column.name) + '">' +
+        '<input class="value-input' + (column.type === 'number' ? ' is-number' : '') + '" type="text" value="' + escAttr(value) + '" placeholder="—" data-field="value" data-col-id="' + escAttr(column.id) + '"' + (column.type === 'number' ? ' inputmode="decimal"' : '') + editAttrs + ' enterkeyhint="next" autocomplete="off" spellcheck="false" aria-label="' + escAttr(column.name) + '">' +
         '</div>';
     }).join('');
+    const rowLabel = row.name ? 'Abrir acciones de ' + row.name : 'Abrir acciones de la fila sin nombre';
 
-    return '<div class="row-card' + (row.done ? ' is-done' : '') + '" data-row-id="' + escAttr(row.id) + '" role="row">' +
-      '<div class="cell cell-check" role="cell">' +
-      '<input class="row-check" type="checkbox"' + (row.done ? ' checked' : '') + ' data-check-row="' + escAttr(row.id) + '" aria-label="' + (row.done ? 'Marcar como pendiente' : 'Marcar como completada') + '">' +
-      '</div>' +
+    return '<div class="row-card' + (row.done ? ' is-done' : '') + '" data-row-id="' + escAttr(row.id) + '" role="row"' + (ui.editRows ? ' tabindex="0" aria-label="' + escAttr(rowLabel) + '"' : '') + '>' +
       '<div class="cell cell-name" role="cell">' +
-      '<input class="row-name" type="text" value="' + escAttr(row.name) + '" placeholder="Sin nombre" data-field="name" enterkeyhint="next" autocomplete="off" spellcheck="false" aria-label="Nombre de la fila">' +
+      '<input class="row-check" type="checkbox"' + (row.done ? ' checked' : '') + ' data-check-row="' + escAttr(row.id) + '" aria-label="' + (row.done ? 'Marcar como pendiente' : 'Marcar como completada') + '">' +
+      '<input class="row-name" type="text" value="' + escAttr(row.name) + '" placeholder="Sin nombre" data-field="name"' + editAttrs + ' enterkeyhint="next" autocomplete="off" spellcheck="false" aria-label="Nombre de la fila">' +
       '</div>' +
       values +
-      '<div class="cell cell-menu" role="cell">' +
-      '<button type="button" class="row-menu" data-action="row-menu" data-id="' + escAttr(row.id) + '" aria-label="Opciones de la fila">' + icon('more') + '</button>' +
-      '</div>' +
       '</div>';
   }
 
@@ -654,29 +625,30 @@
       button.setAttribute('aria-pressed', String(button.getAttribute('data-filter') === ui.filter));
     });
 
-    const totals = document.querySelector('[data-bind="totals"]');
-    if (totals) {
-      totals.innerHTML = totalsHTML(list);
-      totals.hidden = !totals.innerHTML;
-    }
-
+    updateEditModeUI();
     updateFilterEmpty(list);
   }
 
-  function totalsHTML(list) {
-    return list.columns.filter(function (column) { return column.type === 'number'; }).map(function (column) {
-      let total = 0;
-      let count = 0;
-      list.rows.forEach(function (row) {
-        const number = D.parseNumber(row.values[column.id]);
-        if (number !== null) {
-          total += number;
-          count += 1;
-        }
-      });
-      if (!count) return '';
-      return '<span class="total-chip"><span>' + esc(column.name) + '</span><strong>' + esc(D.formatNumber(total)) + '</strong></span>';
-    }).join('');
+  function updateEditModeUI() {
+    const ctx = currentList();
+    const hasRows = !!(ctx && ctx.list.rows.length);
+    const button = document.querySelector('[data-action="toggle-row-edit"]');
+    if (button) {
+      button.disabled = !hasRows;
+      button.setAttribute('aria-pressed', String(ui.editRows));
+      button.innerHTML = icon(ui.editRows ? 'check' : 'pencil') + '<span>' + (ui.editRows ? 'Listo' : 'Editar') + '</span>';
+    }
+    const hint = document.querySelector('[data-bind="edit-hint"]');
+    if (hint) hint.hidden = !ui.editRows;
+  }
+
+  function setRowEditMode(active, options) {
+    if (ui.editRows === active) return;
+    ui.editRows = active;
+    updateEditModeUI();
+    if (options && options.render === false) return;
+    const ctx = currentList();
+    if (ctx) renderListBody(ctx.list);
   }
 
   function touchRow(folder, list, row) {
@@ -747,6 +719,12 @@
   function addRow(options) {
     const ctx = currentList();
     if (!ctx) return;
+    const wasEditing = ui.editRows;
+    if (wasEditing) {
+      ui.editRows = false;
+      updateEditModeUI();
+    }
+    const hadActiveFilter = ui.filter !== 'all' || !!ui.search.list;
     resetListFiltersForAdd();
 
     const row = D.newRow(ctx.list.columns);
@@ -758,7 +736,7 @@
     ctx.folder.updatedAt = timestamp;
     saveDataNow();
 
-    if ((settings.rowSort[ctx.list.id] || 'manual') !== 'manual') {
+    if (wasEditing || hadActiveFilter || (settings.rowSort[ctx.list.id] || 'manual') !== 'manual') {
       renderListBody(ctx.list);
       updateListStats(ctx.list);
       focusRow(row.id, options && options.focusField ? options.focusField : 'name');
@@ -773,8 +751,6 @@
       return;
     }
 
-    const empty = rowsContainer.querySelector('.empty-state');
-    if (empty) empty.remove();
     rowsContainer.insertAdjacentHTML('beforeend', rowHTML(row, ctx.list));
     updateListStats(ctx.list);
     focusRow(row.id, options && options.focusField ? options.focusField : 'name');
@@ -801,6 +777,10 @@
   function insertRow(anchorId, below) {
     const ctx = currentList();
     if (!ctx) return;
+    if (ui.editRows) {
+      ui.editRows = false;
+      updateEditModeUI();
+    }
     resetListFiltersForAdd();
     const index = ctx.list.rows.findIndex(function (row) { return row.id === anchorId; });
     const insertAt = index === -1 ? ctx.list.rows.length : index + (below ? 1 : 0);
@@ -820,6 +800,10 @@
   function duplicateRow(rowId) {
     const ctx = currentList();
     if (!ctx) return;
+    if (ui.editRows) {
+      ui.editRows = false;
+      updateEditModeUI();
+    }
     const index = ctx.list.rows.findIndex(function (row) { return row.id === rowId; });
     if (index === -1) return;
     const original = ctx.list.rows[index];
@@ -874,8 +858,12 @@
 
     const rowElement = document.querySelector('.row-card[data-row-id="' + rowId + '"]');
     if (rowElement) rowElement.remove();
+    if (!ctx.list.rows.length) {
+      ui.editRows = false;
+      updateEditModeUI();
+      renderListBody(ctx.list);
+    }
     updateListStats(ctx.list);
-    if (!ctx.list.rows.length) renderListBody(ctx.list);
 
     showToast('Fila eliminada.', {
       actionLabel: 'Deshacer',
@@ -1278,12 +1266,14 @@
           type: column.type === 'number' ? 'number' : 'text'
         };
       });
-      const list = { id: D.uid('list'), name: name, createdAt: timestamp, updatedAt: timestamp, columns: columns, rows: [] };
+      const firstRow = D.newRow(columns);
+      const list = { id: D.uid('list'), name: name, createdAt: timestamp, updatedAt: timestamp, columns: columns, rows: [firstRow] };
       folder.lists.push(list);
       folder.updatedAt = timestamp;
       saveDataNow();
       sheet.close();
       goList(list.id);
+      window.setTimeout(function () { focusRow(firstRow.id, 'name'); }, 120);
       showToast('Lista creada.');
     });
     renderEditor();
@@ -1905,6 +1895,20 @@
   }
 
   function handleAppClick(event) {
+    if (ui.editRows) {
+      const rowElement = event.target.closest('.row-card');
+      if (rowElement && !event.target.closest('[data-check-row]')) {
+        const ctx = currentList();
+        if (ctx) {
+          const row = ctx.list.rows.find(function (item) { return item.id === rowElement.getAttribute('data-row-id'); });
+          if (row) {
+            openRowMenu(ctx, row);
+            return;
+          }
+        }
+      }
+    }
+
     const target = event.target.closest('[data-action]');
     if (!target || target.disabled) return;
     const action = target.getAttribute('data-action');
@@ -1937,6 +1941,12 @@
       if (folder) openNewList(folder);
       return;
     }
+    if (action === 'toggle-row-edit') {
+      const ctx = currentList();
+      if (!ctx || !ctx.list.rows.length) return;
+      setRowEditMode(!ui.editRows);
+      return;
+    }
     if (action === 'add-row') {
       addRow();
       return;
@@ -1949,13 +1959,6 @@
     if (action === 'list-menu') {
       const ctx = (id ? findList(id) : null) || currentList();
       if (ctx) openListMenu(ctx);
-      return;
-    }
-    if (action === 'row-menu') {
-      const ctx = currentList();
-      if (!ctx || !id) return;
-      const row = ctx.list.rows.find(function (item) { return item.id === id; });
-      if (row) openRowMenu(ctx, row);
       return;
     }
     if (action === 'open-settings') {
@@ -2055,6 +2058,24 @@
         search.dispatchEvent(new Event('input', { bubbles: true }));
       }
       return;
+    }
+
+    if (ui.editRows) {
+      const rowElement = event.target.closest('.row-card');
+      if (rowElement && event.target === rowElement && (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar')) {
+        event.preventDefault();
+        const ctx = currentList();
+        if (ctx) {
+          const row = ctx.list.rows.find(function (item) { return item.id === rowElement.getAttribute('data-row-id'); });
+          if (row) openRowMenu(ctx, row);
+        }
+        return;
+      }
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setRowEditMode(false);
+        return;
+      }
     }
 
     const field = event.target.closest('[data-field]');
